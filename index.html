@@ -15,7 +15,6 @@ button,input{font:inherit}.hidden{display:none!important}
 #pinInput{width:100%;padding:13px;background:#050304;color:var(--ink);border:1px solid #7a6224;border-radius:8px;text-align:center;font-size:22px;letter-spacing:7px}
 .primary{border:0;border-radius:8px;padding:12px 18px;background:linear-gradient(180deg,var(--gold2),var(--gold));color:#111;font-weight:800;cursor:pointer}.gate-card .primary{width:100%;margin-top:12px}
 #error{color:var(--red);font-size:12px;min-height:18px;margin-top:10px}
-#pinGate{flex-direction:column;justify-content:flex-start;padding:24px 0 0;height:100vh;height:100dvh;min-height:0;overflow:hidden}#pinGate .gate-card{margin:0 24px;flex:none}#pinGate .home-art{width:100%;flex:1 1 0;height:auto;min-height:0;margin-top:16px}
 #appRoot{display:none;flex-direction:column;min-height:100vh}.topbar{background:linear-gradient(100deg,#050304 0,#150508 40%,#5c0f1b 100%);color:#efe3c8;padding:18px 28px;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--gold)}
 .brand{display:flex;align-items:center;gap:16px}.brand-logo{height:42px;width:auto;display:block}.brand-divider{height:34px;width:1px;background:var(--gold)}
 .eventname{font-family:Georgia,serif;font-size:20px;color:var(--gold2)}.eventname small{display:block;font:11px Arial,sans-serif;color:#d8c48a;letter-spacing:2px;text-transform:uppercase;margin-top:4px}
@@ -199,7 +198,6 @@ var firebaseConfig={
     measurementId: "G-BVQSSEPQ8L"
   };
 var db=null,logRef=null,log=[];
-(function(){var src=document.querySelector("#appRoot .home-art"),gate=document.getElementById("pinGate");if(src&&gate)gate.appendChild(src.cloneNode(true));})();
 var pinInput=document.getElementById("pinInput");
 function unlock(){if(pinInput.value.trim()===EVENT_PIN){document.getElementById("pinGate").style.display="none";document.getElementById("appRoot").style.display="flex";document.getElementById("scanInput").focus();}else{document.getElementById("error").textContent="Incorrect event PIN. Please try again.";pinInput.select();}}
 document.getElementById("pinSubmit").addEventListener("click",unlock);
