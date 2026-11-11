@@ -29,6 +29,7 @@ h2{font-family:Georgia,serif;color:var(--navy);margin:0 0 8px;font-size:25px}h3{
 .scan-hint{font-size:12px;color:var(--green);margin-bottom:18px}.status{padding:18px;border-radius:9px;background:#150d0f;border-left:4px solid #8a8a8a;min-height:110px}
 .status.success{background:#0f2a1e;border-color:var(--green)}.status.duplicate{background:#2b2308;border-color:var(--yellow)}.status.error{background:#33090f;border-color:var(--red)}.status.other{background:#0e2040;border-color:var(--blue)}.status.other .result-name{color:var(--blue)}
 .status .result-name{font-size:21px;font-weight:800;margin-bottom:8px}.status .result-meta{font-size:13px;line-height:1.7}
+
 .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
 .stat{padding:16px;border-radius:9px;background:linear-gradient(145deg,#4a0d14,#160507);border:1px solid #8a6d22;color:#efe3c8}.stat .num.big{font-size:72px;line-height:1.05}.stat .num{font-size:27px;font-weight:800;color:var(--gold2)}.stat .label{font-size:11px;color:#e6d9b0;margin-top:5px;text-transform:uppercase;letter-spacing:.8px}
 .recent-list{list-style:none;margin:0;padding:0}.recent-list li{padding:10px 0;border-bottom:1px solid var(--line);font-size:12px;display:flex;justify-content:space-between;gap:10px}.recent-list li:last-child{border:0}.muted{color:var(--muted)}
@@ -95,9 +96,6 @@ footer{text-align:center;color:#8a7f66;font-size:11px;padding:25px}
 .entry-choice{width:100%;padding:16px 18px;font-size:16px}
 #pinPanel{margin-top:8px}
 #pinPanel .secondary{width:100%}
-.viewer-mode #view-scan .scan-grid>div:first-child .scan-input,
-.viewer-mode #view-scan .scan-grid>div:first-child .scan-hint,
-.viewer-mode #view-scan .scan-grid>div:first-child .status,
 .viewer-mode #view-scan .scan-grid>div:first-child #btnUndo{display:none!important}
 .viewer-mode #view-scan .scan-grid>div:first-child h2{margin-bottom:8px}
 .viewer-mode #view-dashboard .actions{display:none!important}
@@ -141,7 +139,7 @@ footer{text-align:center;color:#8a7f66;font-size:11px;padding:25px}
 </nav>
 <main>
 <section class="view active" id="view-scan">
- <div class="scan-grid">
+<div class="scan-grid">
   <div class="panel">
    <h2>Welcome to Hollywood Glamour 2026</h2>
    <p class="sub">Scan the employee QR code to register attendance. You can also enter the employee number manually.</p>
@@ -235,7 +233,7 @@ function openApp(mode){
  if(mode==="viewer"){
   scanTab.textContent="Overview";
   document.querySelector('#view-scan h2').textContent="Live Registration Overview";
-  document.querySelector('#view-scan .scan-grid>div:first-child .sub').textContent="Live event headcount and registration progress. This screen is view-only.";
+  document.querySelector('#view-scan .scan-grid>div:first-child .sub').textContent="Scan an employee QR code to view registration details. This screen is view-only; no registration will be created.";
   document.querySelector('.eventname small').textContent="Live View-Only Dashboard";
  }else{
   scanTab.textContent="Scan Station";
@@ -292,6 +290,21 @@ async function undoLast(){
 async function processScan(){
  var input=document.getElementById("scanInput"),raw=input.value.trim();if(!raw)return;input.value="";
  var emp=findEmployee(raw),time=new Date().toISOString();
+ if(document.body.classList.contains("viewer-mode")){
+  if(emp&&emp.ambiguous){
+   setStatus("error","Employee number is not unique","More than one employee has this number. Please scan the employee's QR code.");
+  }else if(!emp){
+   setStatus("other","Employee not found","This name / number is not in the employee database.");
+  }else{
+   var registered=log.some(function(x){return x.status==="REGISTERED"&&x.empNo===emp.emp&&x.qr===emp.qr;});
+   var latest=log.filter(function(x){return x.empNo===emp.emp&&x.qr===emp.qr;}).slice(-1)[0];
+   var state=registered?"Registered":"Not registered yet";
+   var details='<b>'+escapeHtml(emp.name)+'</b><br>Employee No: '+escapeHtml(emp.emp)+'<br>Facility: '+escapeHtml(emp.facility)+'<br>Gender: '+escapeHtml(emp.gender||"N/A")+'<br>Meal preference: '+escapeHtml(emp.meal||"N/A")+'<br>Registration status: <b>'+state+'</b>';
+   if(latest&&latest.time)details+='<br>Last scan: '+escapeHtml(fmtDate(latest.time));
+   setStatus(registered?"success":"other","Employee details",details);
+  }
+  input.focus();return;
+ }
  if(emp&&emp.ambiguous){setStatus("error","Employee number is not unique","More than one employee has this number. Please scan the employee's QR code.");input.focus();return;}
  if(!emp){
   var miss={empNo:raw,name:raw,facility:"Others",meal:"",time:time,status:"NOT_FOUND"};
